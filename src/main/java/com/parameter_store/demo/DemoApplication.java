@@ -15,6 +15,12 @@ public class DemoApplication {
     @Value("${app.description}")
     private String appDescription;
 
+    @Value("${app.secreto}")
+    private String appSecreto;
+
+    @Value("${app.micro_yaml}")
+    private String appMicroYaml;
+
     public static void main(String[] args) {
         SpringApplication.run(DemoApplication.class, args);
     }
@@ -28,6 +34,8 @@ public class DemoApplication {
             System.out.println("Valores cargados desde AWS Parameter Store:");
             System.out.println("  - app.name: " + appName);
             System.out.println("  - app.description: " + appDescription);
+            System.out.println("  - app.description: " + appSecreto);
+            System.out.println("  - app.description: " + appMicroYaml);
             System.out.println("==================================================");
         };
     }

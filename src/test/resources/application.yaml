@@ -24,6 +24,8 @@ aws:
 app:
   name: test-name
   description: test-description
+  secreto: test-secreto
+  micro_yaml: test-micro-yaml
 
 # También deshabilitamos las propiedades de name y description para tests
 name: test-name

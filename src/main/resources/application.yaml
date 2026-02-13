@@ -32,3 +32,5 @@ app:
   # Nombre exacto de cómo está guardado en AWS Parameter Store
   name: ${name}
   description: ${description}
+  secreto: ${secreto}
+  micro_yaml: ${micro_yaml}
