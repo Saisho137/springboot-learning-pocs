@@ -1,8 +1,4 @@
-package co.proteccion.model;
-
-import co.proteccion.value_objects.Country;
-import co.proteccion.value_objects.DocumentType;
-import co.proteccion.value_objects.RiskProfile;
+package co.proteccion.value_objects;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -17,6 +13,6 @@ public record Customer(
         Country residenceCountry,
         BigDecimal monthlyIncomeCOP,
         RiskProfile declaredRiskProfile,
-        Boolean politicallyExposed
+        boolean politicallyExposed
 ) {
 }

@@ -1,4 +1,4 @@
-package co.proteccion.service;
+package co.proteccion.model;
 
 import java.util.List;
 
