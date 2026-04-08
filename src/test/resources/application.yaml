@@ -25,9 +25,6 @@ app:
   name: test-name
   description: test-description
   secreto: test-secreto
-  micro_yaml: test-micro-yaml
-
-# También deshabilitamos las propiedades de name y description para tests
-name: test-name
-description: test-description
+  # micro_yaml es un JSON que el JsonPropertyFlattener aplanará en propiedades individuales del Environment
+  micro_yaml: '{"browsers":{"chrome":{"name":"Chrome","releases":{"1":{"status":"stable","engine":"Blink"}}}}}'
 
