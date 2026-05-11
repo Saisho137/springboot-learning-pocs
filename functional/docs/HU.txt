@@ -1,0 +1,173 @@
+Literal esta es la hu
+HU: Creación y evaluación de solicitud de Pensión Voluntaria (ms-pension-voluntaria)
+Identificador
+HU-MS-PV-001
+Título
+Como cliente de Protección, quiero crear una solicitud de Pensión Voluntaria para que el sistema la valide, evalúe riesgo/compliance y genere una decisión (aprobada, revisión o rechazada) con acciones/eventos asociados.
+
+Descripción
+Se requiere implementar el microservicio ms-pension-voluntaria que exponga un endpoint HTTP para recibir solicitudes de Pensión Voluntaria.
+ El micro debe aplicar validaciones de entrada (borde), ejecutar reglas de negocio en dominio (DDD) con arquitectura Clean/Hexagonal, evaluar riesgo y compliance, generar warnings no bloqueantes, retornar una decisión y producir eventos de dominio.
+
+Alcance
+Incluye
+• Endpoint POST /pension-voluntaria/applications
+
+• Mapeo de DTO HTTP → modelo dominio
+
+• Validación runtime en el borde (400 Bad Request cuando aplique)
+
+• Dominio con Agregado + reglas separadas + servicio de decisión
+
+• Warnings de negocio (no bloqueantes)
+
+• Risk evaluation (OK / REVIEW / REJECT)
+
+• Generación de eventos de dominio
+
+• Puertos/adaptadores (audit, repository, notification) como infraestructura mínima (logging)
+
+
+
+Actores
+• Cliente/Front (consumidor del endpoint)
+
+• ms-pension-voluntaria (microservicio)
+
+• Infra adapters:
+
+• AuditPort
+
+• RepositoryPort
+
+• NotificationPort
+
+
+Valor de negocio
+• Estandariza el proceso de onboarding de Pensión Voluntaria
+
+• Reduce errores por datos inválidos (400 temprano)
+
+• Permite decisiones deterministas y testeables (núcleo funcional)
+
+• Facilita reuso de validaciones y utilidades entre micros mediante librería privada
+
+
+
+
+Reglas funcionales (FR)
+FR-01: Endpoint de creación
+El micro debe exponer:
+• POST /pension-voluntaria/applications
+
+• Recibe JSON con customer, product, compliance, requestId, createdAtISO
+
+• Retorna decisión: APPROVED | PENDING_REVIEW | REJECTED
+
+FR-02: Validación en el borde (HTTP → 400)
+Antes de construir el agregado, se valida runtime:
+• Email con regex isEmail
+
+• Phone CO 10 dígitos con isPhoneCO10
+
+• Enums válidos:
+
+• Country ∈ {CO, US, MX, ES}
+
+• DocumentType ∈ {CC, CE, PASSPORT}
+
+• RiskProfile ∈ {CONSERVADOR, MODERADO, AGRESIVO}
+
+• ContributionFrequency ∈ {WEEKLY, BIWEEKLY, MONTHLY}
+
+• Validación condicional:
+
+• si autoDebit=true entonces frequency es requerido y válido
+
+• si autoDebit=false y se envía frequency, se puede registrar como warning o ignorar según política (implementado como warning en la clase)
+
+
+
+
+Si hay errores, el endpoint responde:
+• HTTP 400
+
+• body con status=REJECTED, reasons indicando el detalle
+
+FR-03: Reglas bloqueantes (invariantes del dominio)
+En el dominio se validan reglas como:
+• Edad mínima >= 18 (por createdAtISO)
+
+• initialContributionCOP >= 50.000
+
+• Si autoDebit=true, recurringContributionCOP >= 30.000 y frequency definido
+
+• sourceOfFundsDeclared=true
+
+• isOnRestrictedList=false
+
+• Si residenceCountry=US, taxDeclarationAccepted=true
+
+Si falla, el dominio retorna REJECTED con reasons.
+FR-04: Warnings no bloqueantes
+El dominio debe generar warnings:
+• si no hay declaredRiskProfile y se elige AGRESIVO
+
+• si declaredRiskProfile=CONSERVADOR y elige AGRESIVO
+
+• si el cliente es PEP (politicallyExposed=true)
+
+FR-05: Evaluación de riesgo (RiskOutcome)
+Se aplica un motor simple:
+• Si recurring / income > 0.4 → REJECT
+
+• Si initialContribution >= 20.000.000 → REVIEW
+
+• Si ninguna regla aplica → OK
+
+La decisión final:
+• REJECT → status REJECTED
+
+• REVIEW → status PENDING_REVIEW
+
+• OK → status APPROVED
+
+FR-06: Eventos de dominio
+Según decisión, se generan eventos:
+• ApplicationApproved | ApplicationRejected | ApplicationReviewRequired
+
+• Si APPROVED: ContractRequested
+
+• Si APPROVED y autoDebit: AutoDebitRequested
+
+
+Contrato de ejemplo:
+
+{
+  "requestId": "req-001",
+  "createdAtISO": "2026-01-20T10:00:00Z",
+  "customer": {
+    "documentType": "CC",
+    "documentNumber": "10101010",
+    "fullName": "Juan Perez",
+    "birthDateISO": "1995-04-10",
+    "email": "juan@mail.com",
+    "phone": "3001234567",
+    "residenceCountry": "CO",
+    "monthlyIncomeCOP": 4000000,
+    "declaredRiskProfile": "MODERADOSS",
+    "politicallyExposed": false
+  },
+  "product": {
+    "initialContributionCOP": 1000000,
+    "autoDebit": true,
+    "recurringContributionCOP": 150000,
+    "frequency": "MONTHLY",
+    "strategy": "MODERADOSS"
+  },
+  "compliance": {
+    "isOnRestrictedList": false,
+    "sourceOfFundsDeclared": true,
+    "taxDeclarationAccepted": false
+  }
+}

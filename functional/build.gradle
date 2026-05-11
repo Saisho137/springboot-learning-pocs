@@ -1,0 +1,46 @@
+plugins {
+	id 'java'
+	id 'org.springframework.boot' version '3.2.2' apply false // Solo gestión de versiones
+	id 'io.spring.dependency-management' version '1.1.4' apply false
+}
+
+allprojects {
+	group = 'co.com.proteccion.pension'
+	version = '0.0.1-SNAPSHOT'
+
+	repositories {
+		mavenCentral()
+	}
+}
+
+subprojects {
+	apply plugin: 'java'
+	apply plugin: 'java-library' // Mejor gestión de dependencias transitivas
+	apply plugin: 'io.spring.dependency-management'
+
+	dependencyManagement {
+		imports {
+			mavenBom 'org.springframework.boot:spring-boot-dependencies:3.2.2'
+		}
+	}
+
+	java {
+		toolchain {
+			languageVersion = JavaLanguageVersion.of(21)
+		}
+	}
+
+	dependencies {
+		// Lombok para reducir boilerplate (opcional en Java 17 si usas Records, pero útil para Logs)
+		compileOnly 'org.projectlombok:lombok:1.18.30'
+		annotationProcessor 'org.projectlombok:lombok:1.18.30'
+
+		// Testing básico
+		testImplementation 'org.junit.jupiter:junit-jupiter'
+		testImplementation 'org.assertj:assertj-core' // Fluent assertions (muy estilo funcional)
+	}
+
+	test {
+		useJUnitPlatform()
+	}
+}

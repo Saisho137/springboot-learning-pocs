@@ -1,0 +1,92 @@
+# -------------------------------------------------
+# 1. MOCK GENERATOR (Python) - ESTRATEGIA "SPLIT"
+# Genera 30MB divididos en dos llaves para burlar a Jackson
+# -------------------------------------------------
+apiVersion: v1
+kind: Service
+metadata:
+  name: mock-service
+spec:
+  ports:
+    - port: 8000
+      targetPort: 8000
+  selector:
+    app: mock
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mock
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mock
+  template:
+    metadata:
+      labels:
+        app: mock
+    spec:
+      containers:
+        - name: mock
+          image: python:3.9-slim
+          command: ["/bin/sh", "-c"]
+          # Script Actualizado:
+          # Crea JSON con DOS llaves de 15MB cada una (Total 30MB)
+          # Jackson permite <20MB por string, así que esto pasará y llenará la RAM.
+          args:
+            - |
+              echo "Generando mock de 89KB..."
+              # 89 * 1024 = 91,136 caracteres (Bytes) = 89 KB
+              python3 -c 'import json; print(json.dumps({
+                "data": "x" * (89 * 1024), 
+                "status": "ok"
+              }))' > mock-response.json
+              
+              echo "Iniciando servidor..."
+              python3 -m http.server 8000
+
+# -------------------------------------------------
+# 2. VICTIM SERVICE (Sin cambios)
+# -------------------------------------------------
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: victim-service
+spec:
+  selector:
+    app: victim
+  ports:
+    - port: 8080
+      targetPort: 8080
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: victim
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: victim
+  template:
+    metadata:
+      labels:
+        app: victim
+    spec:
+      containers:
+        - name: victim
+          image: victim-app:local
+          imagePullPolicy: Never
+          resources:
+            # Mantenemos los límites estrictos
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+            requests:
+              cpu: "200m"
+              memory: "256Mi"
+          env:
+            - name: JAVA_TOOL_OPTIONS
+              value: "-XX:+PrintGCDetails -Xlog:gc*"

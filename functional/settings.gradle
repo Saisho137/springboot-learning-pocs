@@ -1,0 +1,5 @@
+rootProject.name = 'ms-pension-voluntaria'
+
+include 'domain'
+include 'application'
+include 'infrastructure'
