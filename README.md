@@ -1,8 +1,8 @@
 # Spring Boot Learning POCs
 
-Pruebas de concepto sobre Spring Boot.
+Pruebas de concepto sobre Spring Boot y Java.
 
 | POC | Concepto |
 |-----|----------|
 | `parameter-store` | Integración con AWS Parameter Store |
-| `functional` | Estilo funcional en Spring (functional endpoints, etc.) |
+| `functional` | Programación funcional de alto nivel en Java (lambdas, streams, functional interfaces) |
