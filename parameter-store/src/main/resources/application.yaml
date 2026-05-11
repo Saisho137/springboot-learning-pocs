@@ -1,0 +1,36 @@
+spring:
+  application:
+    name: demo
+  config:
+    # :/demo/ es el prefijo que se usará para buscar los parámetros en AWS Parameter Store
+    import: "aws-parameterstore:/demo/"
+  # Configuración de Spring Cloud AWS 3.x (propiedades correctas)
+  cloud:
+    aws:
+      credentials:
+        # Usar el perfil de AWS configurado en ~/.aws/credentials
+        profile:
+          name: ${AWS_PROFILE:026090553765_Pragma-Ps-Lideres-Backend-Dev}
+      region:
+        static: us-east-1
+      parameterstore:
+        enabled: true
+
+# Configuración legacy para el bean SsmClient personalizado (AwsConfig.java)
+aws:
+  region: us-east-1
+  credentials:
+    access-key: ${AWS_ACCESS_KEY_ID:dummy}
+    secret-key: ${AWS_SECRET_ACCESS_KEY:dummy}
+  parameter-store:
+    prefix: /demo/
+
+# Nombre exacto de cómo está guardado en AWS Parameter Store
+# No tiene que ser bajo X propiedad, simplemente basta con respetar el nombre exacto del Parameter Store con el ${}
+# @Value("${app.name}") private String name;
+app:
+  # Nombre exacto de cómo está guardado en AWS Parameter Store
+  name: ${name}
+  description: ${description.test}
+  secreto: ${secreto}
+  micro_yaml: ${micro_yaml}

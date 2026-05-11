@@ -1,0 +1,30 @@
+spring:
+  application:
+    name: demo
+  # Deshabilitamos el import de Parameter Store en tests
+  config:
+    import: "optional:aws-parameterstore:/demo/"
+
+# Deshabilitamos la resolución automática de Parameter Store para tests
+spring.cloud.aws.parameterstore:
+  enabled: false
+
+aws:
+  region: us-east-1
+  credentials:
+    access-key: test-access-key
+    secret-key: test-secret-key
+    profile-name: test
+    token: test-token
+  parameter-store:
+    enabled: false
+    prefix: /demo/
+
+# Valores mock para tests
+app:
+  name: test-name
+  description: test-description
+  secreto: test-secreto
+  # micro_yaml es un JSON que el JsonPropertyFlattener aplanará en propiedades individuales del Environment
+  micro_yaml: '{"browsers":{"chrome":{"name":"Chrome","releases":{"1":{"status":"stable","engine":"Blink"}}}}}'
+
